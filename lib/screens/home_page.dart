@@ -7,7 +7,6 @@ import 'package:dhravyatech/screens/widgets/image_widget.dart';
 import 'package:dhravyatech/utils/logger.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:video_player/video_player.dart';
 
@@ -17,11 +16,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+//<----------------------------------Variables & Controllers------------------------------------>
   int _currentPage = 0;
   PanelController _panelController = PanelController();
   final CarouselController carouselController = CarouselController();
   late VideoPlayerController _videoPlayerController;
   late ChewieController _chewieController;
+  bool isChewieInitialized = false;
+  String footerText = "Swipe up for more details";
   Future<void> initVideoPlayer() async {
     await _videoPlayerController.initialize();
 
@@ -39,12 +41,14 @@ class _HomePageState extends State<HomePage> {
           );
         });
   }
+//<---------------------------------------------------------------------------------------------->
 
   @override
   void initState() {
     _videoPlayerController = VideoPlayerController.asset('assets/sam3.mp4');
-    initVideoPlayer().whenComplete(() => setState(() {}));
-
+    initVideoPlayer().whenComplete(() => setState(() {
+          isChewieInitialized = true;
+        }));
     super.initState();
   }
 
@@ -84,49 +88,62 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(color: Colors.white, fontSize: kDefaultPadding),
           ),
         ),
-        body: SlidingUpPanel(
-          controller: _panelController,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(kDefaultPadding),
-            topRight: Radius.circular(kDefaultPadding),
-          ),
-          padding: EdgeInsets.only(top: 0),
-          minHeight: 70,
-          footer: GestureDetector(
-            onTap: () {
-              if (_panelController.isPanelOpen) {
-                _panelController.close();
-              } else
-                _panelController.open();
-            },
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Container(
-                  color: Colors.blue.shade600,
-                  height: 70,
-                  width: MediaQuery.of(context).size.width,
-                  child: Center(
-                    child: Text(
-                      "Buy",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+        body: !isChewieInitialized
+            ? Center(child: CircularProgressIndicator())
+            : SlidingUpPanel(
+                controller: _panelController,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(kDefaultPadding),
+                  topRight: Radius.circular(kDefaultPadding),
+                ),
+                padding: EdgeInsets.only(top: 0),
+                minHeight: 70,
+                footer: GestureDetector(
+                  onTap: () {
+                    if (_panelController.isPanelOpen) {
+                      _panelController.close();
+                    } else
+                      _panelController.open();
+                  },
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Container(
+                        color: Colors.blue.shade600,
+                        height: 70,
+                        width: MediaQuery.of(context).size.width,
+                        child: Center(
+                          child: Text(
+                            footerText,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
+                // maxHeight: 540,
+                maxHeight: MediaQuery.of(context).size.height,
+                panelBuilder: (sc) => _panel(context, sc),
+                onPanelSlide: (position) {
+                  _videoPlayerController.pause();
+                  setState(() {
+                    footerText = "Cancel";
+                  });
+                },
+                onPanelClosed: () {
+                  _videoPlayerController.play();
+                  setState(() {
+                    footerText = "Swipe up for more details";
+                  });
+                },
+                body: _body(context),
               ),
-            ),
-          ),
-          // maxHeight: 540,
-          maxHeight: MediaQuery.of(context).size.height,
-          panelBuilder: (sc) => _panel(context, sc),
-          onPanelSlide: (position) => _videoPlayerController.pause(),
-          onPanelClosed: () => _videoPlayerController.play(),
-          body: _body(context),
-        ),
       ),
     );
   }
@@ -160,12 +177,6 @@ class _HomePageState extends State<HomePage> {
                           fontSize: 17,
                         ),
                       ),
-                      ValueListenableBuilder(
-                        valueListenable: _videoPlayerController,
-                        builder: (context, VideoPlayerValue value, child) {
-                          return Text(value.position.toString());
-                        },
-                      ),
                     ],
                   ),
                 ),
@@ -185,28 +196,18 @@ class _HomePageState extends State<HomePage> {
     changeCurrentPage(int index) {
       WidgetsBinding.instance!.addPostFrameCallback((_) {
         setState(() {
-          logger.e("Current Page Changing to ${index}");
+          logger.e("Current Page Changing to $index");
           setCount = index;
           _currentPage = index;
         });
       });
     }
 
-    // if (!_chewieController.isPlaying)
-    //   return MediaQuery.removePadding(
-    //       context: context,
-    //       child: Container(
-    //         child: Text("More"),
-    //       ));
-    // else
     return MediaQuery.removePadding(
       context: context,
       child: ValueListenableBuilder(
         valueListenable: _chewieController.videoPlayerController,
         builder: (context, VideoPlayerValue value, child) {
-          // logger.wtf("Current Page in ValueListenable : " +
-          //     _currentPage.toString() +
-          //     " at time ${value.position.inSeconds}");
           int seconds = value.position.inSeconds;
           if (this.mounted) {
             if (seconds >= 0 &&
@@ -226,11 +227,14 @@ class _HomePageState extends State<HomePage> {
             controller: sc,
             shrinkWrap: true,
             children: [
-              SizedBox(height: 70),
-              Center(
-                child: Text(
-                  "${productWidgets[_currentPage].modelName}",
-                  style: TextStyle(fontSize: 20),
+              SizedBox(height: 20),
+              Align(
+                alignment: Alignment.topCenter,
+                child: Center(
+                  child: Text(
+                    "${productWidgets[_currentPage].modelName}",
+                    style: TextStyle(fontSize: 20),
+                  ),
                 ),
               ),
               Align(
