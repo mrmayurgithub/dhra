@@ -3,6 +3,7 @@ import 'package:chewie/chewie.dart';
 import 'package:dhravyatech/models/product_details.dart';
 import 'package:dhravyatech/screens/widgets/image_widget.dart';
 import 'package:dhravyatech/utils/logger.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:video_player/video_player.dart';
@@ -56,21 +57,23 @@ class _HomePageState extends State<HomePage> {
   List productWidgets = [
     ProductDetails(
       url: 'assets/a32.png',
+      price: "₹20,499",
       modelName: "Samsung Galaxy A32",
       brand: "Samsung",
       storage: 128,
       ram: 6,
       os: "Android 11.0",
-      color: "White",
+      color: "Black",
       screenSize: 6.7,
       displayType: "SAMOLED",
     ),
     ProductDetails(
       url: 'assets/m31.png',
+      price: "₹15,650",
       modelName: "Samsung Galaxy M31",
       brand: "Samsung",
       storage: 64,
-      ram: 4,
+      ram: 6,
       os: "Android",
       color: "Blue",
       screenSize: 6.4,
@@ -78,12 +81,13 @@ class _HomePageState extends State<HomePage> {
     ),
     ProductDetails(
       url: 'assets/m51_2.png',
+      price: "₹19,999",
       modelName: "Samsung Galaxy M51",
       brand: "Samsung",
       storage: 128,
       ram: 6,
       os: "Android",
-      color: "Black",
+      color: "White",
       screenSize: 6.7,
       displayType: "SAMOLED Plus",
     ),
@@ -99,84 +103,140 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        title: Text(
-          "Dhravya",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
+    return GestureDetector(
+      onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.blue,
+          title: Text(
+            "Dhravya",
+            style: TextStyle(color: Colors.white, fontSize: 20),
           ),
         ),
-      ),
-      body: SlidingUpPanel(
-        controller: _panelController,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+        body: SlidingUpPanel(
+          controller: _panelController,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+          padding: EdgeInsets.only(top: 0),
+          minHeight: 70,
+          footer: GestureDetector(
+            onTap: () {
+              if (_panelController.isPanelOpen) {
+                _panelController.close();
+              } else
+                _panelController.open();
+            },
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Container(
+                  color: Colors.blue.shade600,
+                  height: 70,
+                  width: MediaQuery.of(context).size.width,
+                  child: Center(
+                    child: Text(
+                      "Buy",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // maxHeight: 540,
+          maxHeight: MediaQuery.of(context).size.height,
+          panelBuilder: (sc) => _panel(context, sc),
+          onPanelSlide: (position) => _videoPlayerController.pause(),
+          onPanelClosed: () => _videoPlayerController.play(),
+          body: _body(context),
         ),
-        padding: EdgeInsets.only(top: 0),
-        minHeight: 70,
-        maxHeight: 520,
-        // parallaxEnabled: true,
-        // parallaxOffset: 0.5,
-        panelBuilder: (sc) => _panel(context, sc),
-        onPanelSlide: (position) {
-          _videoPlayerController.pause();
-        },
-        onPanelClosed: () {
-          _videoPlayerController.play();
-          logger.e("TIME : ${_videoPlayerController.value.duration.inSeconds}");
-        },
-        body: _body(context),
       ),
     );
   }
 
   SingleChildScrollView _body(BuildContext context) {
     return SingleChildScrollView(
-      child: Column(
-        children: [
-          SizedBox(height: 10),
-          _videoPlayerController.value.isInitialized
-              ? Container(
+      child: _videoPlayerController.value.isInitialized
+          ? Column(
+              children: [
+                SizedBox(height: 10),
+                Container(
                   height: 200,
                   width: MediaQuery.of(context).size.width,
                   child: Chewie(
                     controller: _chewieController,
                   ),
-                )
-              : Center(
-                  child: CircularProgressIndicator(),
                 ),
-        ],
-      ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SelectableText(
+                        "Best 3 Samsung Smartphones Under 20,000",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 17,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          : Center(
+              child: CircularProgressIndicator(),
+            ),
     );
   }
 
   MediaQuery _panel(BuildContext context, ScrollController sc) {
     return MediaQuery.removePadding(
       context: context,
-      child: StatefulBuilder(
-        builder: (context, setState) => ListView(
+      child: StatefulBuilder(builder: (context, setState) {
+        // int seconds = _videoPlayerController.value.duration.inSeconds;
+        // if (seconds <= 0 && seconds < 75)
+        //   setState(() {
+        //     _currentPage = 0;
+        //   });
+        // else if (seconds <= 75 && seconds < 139)
+        //   setState(() {
+        //     _currentPage = 1;
+        //   });
+        // else
+        //   setState(() {
+        //     _currentPage = 2;
+        //   });
+        return ListView(
           controller: sc,
           shrinkWrap: true,
           children: [
-            GestureDetector(
-              onTap: () {
-                if (_panelController.isPanelOpen) {
-                  _panelController.close();
-                } else
-                  _panelController.open();
-              },
-              child: Center(
-                child: Text(
-                  "More",
-                  style: TextStyle(fontSize: 20),
-                ),
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     if (_panelController.isPanelOpen) {
+            //       _panelController.close();
+            //     } else
+            //       _panelController.open();
+            //   },
+            //   child: Center(
+            //     child: Text(
+            //       "More",
+            //       style: TextStyle(fontSize: 20),
+            //     ),
+            //   ),
+            // ),
             Align(
               alignment: Alignment.topCenter,
               child: CarouselSlider(
@@ -221,82 +281,122 @@ class _HomePageState extends State<HomePage> {
                 }),
               ),
             ),
-            Align(
-              alignment: Alignment.topCenter,
+            Padding(
+              padding: const EdgeInsets.only(left: 30),
               child: SelectableText(
-                "Specifications",
-              ),
-            ),
-            SizedBox(height: 20),
-            Align(
-              alignment: Alignment.topCenter,
-              child: SelectableText(
-                "Model Name - ${productWidgets[_currentPage].modelName}",
-              ),
-            ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: SelectableText(
-                "Model Name - ${productWidgets[_currentPage].brand}",
-              ),
-            ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: SelectableText(
-                "Model Name - ${productWidgets[_currentPage].storage}",
-              ),
-            ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: SelectableText(
-                "Model Name - ${productWidgets[_currentPage].ram}",
-              ),
-            ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: SelectableText(
-                "Model Name - ${productWidgets[_currentPage].os}",
-              ),
-            ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: SelectableText(
-                "Model Name - ${productWidgets[_currentPage].color}",
-              ),
-            ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: SelectableText(
-                "Model Name - ${productWidgets[_currentPage].screenSize}",
-              ),
-            ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: SelectableText(
-                "Model Name - ${productWidgets[_currentPage].displayType}",
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Container(
-                  color: Colors.blue.shade600,
-                  height: 60,
-                  width: MediaQuery.of(context).size.width,
-                  child: Center(
-                    child: Text(
-                      "Buy",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                "${productWidgets[_currentPage].price}",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
+            SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.only(left: 30),
+              child: SelectableText(
+                "Details",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DetailName("Model Name -"),
+                    DetailName("Brand -"),
+                    DetailName("Storage -"),
+                    DetailName("Ram -"),
+                    DetailName("OS -"),
+                    DetailName("Color -"),
+                    DetailName("Screen Size -"),
+                    DetailName("Display Type -"),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    DetailItem("${productWidgets[_currentPage].modelName}"),
+                    DetailItem("${productWidgets[_currentPage].brand}"),
+                    DetailItem("${productWidgets[_currentPage].storage} GB"),
+                    DetailItem("${productWidgets[_currentPage].ram} GB"),
+                    DetailItem("${productWidgets[_currentPage].os}"),
+                    DetailItem("${productWidgets[_currentPage].color}"),
+                    DetailItem(
+                        "${productWidgets[_currentPage].screenSize} Inches"),
+                    DetailItem("${productWidgets[_currentPage].displayType}"),
+                  ],
+                )
+              ],
+            ),
+            // Align(
+            //   alignment: Alignment.bottomCenter,
+            //   child: Padding(
+            //     padding: const EdgeInsets.only(top: 8),
+            //     child: Container(
+            //       color: Colors.blue.shade600,
+            //       height: 60,
+            //       width: MediaQuery.of(context).size.width,
+            //       child: Center(
+            //         child: Text(
+            //           "Buy",
+            //           style: TextStyle(
+            //             fontWeight: FontWeight.w800,
+            //             color: Colors.white,
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
+        );
+      }),
+    );
+  }
+}
+
+class DetailItem extends StatelessWidget {
+  final String text;
+  DetailItem(this.text);
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: SelectableText(
+          text,
+          style: TextStyle(
+            height: 1.2,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class DetailName extends StatelessWidget {
+  final String text;
+  DetailName(this.text);
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: SelectableText(
+          text,
+          style: TextStyle(
+            height: 1.2,
+          ),
         ),
       ),
     );

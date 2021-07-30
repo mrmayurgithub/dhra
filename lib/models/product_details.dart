@@ -1,5 +1,6 @@
 class ProductDetails {
   String url;
+  String price;
   String modelName;
   String brand;
   int storage;
@@ -10,6 +11,7 @@ class ProductDetails {
   String displayType;
   ProductDetails({
     required this.url,
+    required this.price,
     required this.modelName,
     required this.brand,
     required this.storage,
