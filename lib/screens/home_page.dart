@@ -127,13 +127,14 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                // maxHeight: 540,
-                maxHeight: MediaQuery.of(context).size.height,
+                //550
+                maxHeight: MediaQuery.of(context).size.height - 200 - 100,
+                // maxHeight: MediaQuery.of(context).size.height,
                 panelBuilder: (sc) => _panel(context, sc),
                 onPanelSlide: (position) {
                   _videoPlayerController.pause();
                   setState(() {
-                    footerText = "Cancel";
+                    footerText = "Buy";
                   });
                 },
                 onPanelClosed: () {
@@ -225,7 +226,6 @@ class _HomePageState extends State<HomePage> {
           }
           return ListView(
             controller: sc,
-            shrinkWrap: true,
             children: [
               SizedBox(height: 20),
               Align(
@@ -306,6 +306,7 @@ class _HomePageState extends State<HomePage> {
               ),
               SizedBox(height: kDefaultPadding),
               DetailsRow(currentPage: _currentPage),
+              SizedBox(height: 80),
             ],
           );
         },
